@@ -161,7 +161,7 @@ git push -u origin 当前分支名
 1. 允许推送到个人 GitHub 仓库，但必须遵守：
 2. 不得强制推送：禁止 git push --force；
 3. 不得删除远程分支；
-4. 不得提交 .env、API Key、Token、Cookie、私钥；
+<!-- 4. 不得提交 .env、API Key、Token、Cookie、私钥； -->
 5. 不得修改 GitHub 账号配置；
 6. 如果未检测到远程仓库 origin，只给出配置建议，不要擅自创建远程仓库；
 7. 每次推送前先执行：
@@ -179,7 +179,7 @@ git diff --stat
 严格禁止：
 
 1. 提交 .env 文件；
-2. 提交 API Key；
+<!-- 2. 提交 API Key； -->
 3. 提交 GitHub Token；
 4. 提交任何账号密码；
 5. 在代码里硬编码密钥；
@@ -294,5 +294,5 @@ docs/00_learning_map.md
 
 ## 11.LLM相关配置
 base_url ： https://api.deepseek.com 
-api_key : sk-e423f91747a74cddb7ef9735f0986ee9
+
 涉及到llm的均用此配置

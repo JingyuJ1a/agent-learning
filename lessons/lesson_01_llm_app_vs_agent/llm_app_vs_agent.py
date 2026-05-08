@@ -5,7 +5,9 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from typing import Any, Protocol
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class LLM(Protocol):
     """The smallest interface this lesson needs from an LLM."""
@@ -32,11 +34,12 @@ class LLMConfig:
         hardcoded in source code.
         """
 
-        api_key = (
-            os.environ.get("DEEPSEEK_API_KEY")
-            or os.environ.get("OPENAI_API_KEY")
-            or os.environ.get("LLM_API_KEY")
-        )
+        # api_key = (
+        #     os.environ.get("DEEPSEEK_API_KEY")
+        #     or os.environ.get("OPENAI_API_KEY")
+        #     or os.environ.get("LLM_API_KEY")
+        # )
+        api_key = os.getenv("DEEPSEEK_API_KEY")
         if not api_key:
             raise RuntimeError(
                 "Missing LLM API key. Set DEEPSEEK_API_KEY, OPENAI_API_KEY, "
