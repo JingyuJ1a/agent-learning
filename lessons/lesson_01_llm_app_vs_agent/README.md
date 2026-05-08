@@ -58,14 +58,22 @@ lessons/lesson_01_llm_app_vs_agent/llm_app_vs_agent.py
 
 - `simple_llm_app`：普通 LLM App，一次调用直接回答；
 - `minimal_agent`：最小 Agent Loop，先决定动作，再调用工具，最后回答；
-- `FakeLLM`：假的 LLM，用固定规则模拟模型输出，避免第一课就被 API Key 干扰。
+- `OpenAICompatibleLLM`：最小真实 LLM 客户端，通过 OpenAI-compatible Chat Completions API 调用模型。
 
 ## 5. 运行方式
 
 在项目根目录运行：
 
 ```bash
+export OPENAI_API_KEY="你的 API Key"
+export OPENAI_MODEL="你的模型名"
 python3 lessons/lesson_01_llm_app_vs_agent/llm_app_vs_agent.py
+```
+
+如果使用兼容 OpenAI API 的其他服务，可以额外设置：
+
+```bash
+export OPENAI_BASE_URL="https://你的服务地址/v1"
 ```
 
 运行测试：
