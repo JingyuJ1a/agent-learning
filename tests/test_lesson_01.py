@@ -1,10 +1,13 @@
 from lessons.lesson_01_llm_app_vs_agent.llm_app_vs_agent import (
+    LLMConfig,
     minimal_agent,
     simple_llm_app,
 )
 
 
 class ScriptedLLM:
+    """Deterministic test double for lesson assertions."""
+
     def complete(self, prompt: str) -> str:
         if "NEXT_ACTION" in prompt and "weather" in prompt.lower():
             return "USE_TOOL:get_weather:Shanghai"
@@ -25,3 +28,10 @@ def test_minimal_agent_uses_tool_observation() -> None:
     assert answer == "Shanghai is sunny today, based on the tool observation."
     assert steps[0].action == "USE_TOOL:get_weather:Shanghai"
     assert steps[0].observation == "Shanghai: sunny"
+
+
+def test_llm_config_defaults_to_deepseek() -> None:
+    config = LLMConfig(api_key="test-key")
+
+    assert config.base_url == "https://api.deepseek.com"
+    assert config.model == "deepseek-chat"

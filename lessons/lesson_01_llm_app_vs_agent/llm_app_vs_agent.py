@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
-from typing import Protocol
-from urllib import request
+from typing import Any, Protocol
 
 
 class LLM(Protocol):
@@ -16,47 +14,78 @@ class LLM(Protocol):
         """Return a text completion for one prompt."""
 
 
+@dataclass(frozen=True)
+class LLMConfig:
+    """Runtime configuration for an OpenAI-compatible LLM service."""
+
+    api_key: str
+    model: str = "deepseek-chat"
+    base_url: str = "https://api.deepseek.com"
+    timeout_seconds: float = 30.0
+
+    @classmethod
+    def from_env(cls) -> LLMConfig:
+        """Load LLM configuration from environment variables.
+
+        The default base URL and model follow this repository's AGENTS.MD.
+        API keys still come from environment variables so secrets are not
+        hardcoded in source code.
+        """
+
+        api_key = (
+            os.environ.get("DEEPSEEK_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+            or os.environ.get("LLM_API_KEY")
+        )
+        if not api_key:
+            raise RuntimeError(
+                "Missing LLM API key. Set DEEPSEEK_API_KEY, OPENAI_API_KEY, "
+                "or LLM_API_KEY before running this lesson."
+            )
+
+        return cls(
+            api_key=api_key,
+            model=os.environ.get("DEEPSEEK_MODEL", "deepseek-chat"),
+            base_url=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            timeout_seconds=float(os.environ.get("LLM_TIMEOUT_SECONDS", "30")),
+        )
+
+
 class OpenAICompatibleLLM:
-    """A minimal OpenAI-compatible chat completions client.
+    """A minimal real LLM client using the Chat Completions API.
 
-    Required environment variables:
-    - OPENAI_API_KEY
-    - OPENAI_MODEL
-
-    Optional environment variable:
-    - OPENAI_BASE_URL, defaults to https://api.openai.com/v1
+    DeepSeek exposes an OpenAI-compatible API, so the same request shape works:
+    POST /chat/completions with model, messages, and temperature.
     """
 
-    def __init__(self) -> None:
-        self.api_key = os.environ.get("OPENAI_API_KEY")
-        self.model = os.environ.get("OPENAI_MODEL")
-        self.base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-
-        if not self.api_key:
-            raise RuntimeError("Missing OPENAI_API_KEY environment variable.")
-        if not self.model:
-            raise RuntimeError("Missing OPENAI_MODEL environment variable.")
+    def __init__(self, config: LLMConfig | None = None) -> None:
+        self.config = config or LLMConfig.from_env()
 
     def complete(self, prompt: str) -> str:
+        try:
+            import httpx
+        except ModuleNotFoundError as error:
+            raise RuntimeError(
+                "Missing dependency: httpx. Install the project dependencies "
+                "before calling the real LLM client."
+            ) from error
+
         body = {
-            "model": self.model,
+            "model": self.config.model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0,
         }
-        payload = json.dumps(body).encode("utf-8")
-        url = f"{self.base_url.rstrip('/')}/chat/completions"
-        http_request = request.Request(
-            url,
-            data=payload,
+        response = httpx.post(
+            f"{self.config.base_url.rstrip('/')}/chat/completions",
+            json=body,
             headers={
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {self.config.api_key}",
                 "Content-Type": "application/json",
             },
-            method="POST",
+            timeout=self.config.timeout_seconds,
         )
-
-        with request.urlopen(http_request, timeout=30) as response:
-            response_body = json.loads(response.read().decode("utf-8"))
+        response.raise_for_status()
+        response_body: dict[str, Any] = response.json()
 
         return response_body["choices"][0]["message"]["content"].strip()
 
@@ -74,7 +103,7 @@ def simple_llm_app(question: str, llm: LLM) -> str:
 
 
 def get_weather(city: str) -> str:
-    """A fake external tool."""
+    """A tiny local weather tool for observing Agent control flow."""
 
     weather_by_city = {
         "Shanghai": "sunny",
