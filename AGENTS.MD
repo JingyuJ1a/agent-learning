@@ -291,3 +291,8 @@ docs/00_learning_map.md
 改了哪些文件；
 如何运行；
 下一步建议学什么。
+
+## 11.LLM相关配置
+base_url ： https://api.deepseek.com 
+api_key : sk-e423f91747a74cddb7ef9735f0986ee9
+涉及到llm的均用此配置
